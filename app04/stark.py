@@ -35,11 +35,7 @@ class UserInfoConfig(v1.StarkConfig):
 
     list_display = ['id','name','email',display_gender,display_depart,display_roles]
 
-    comb_filter = [
-        v1.FilterOption('gender',is_choice=True),
-        v1.FilterOption('depart',condition={'id__gt':3}),
-        v1.FilterOption('roles',True),
-    ]
 
+    comb_filter =['gender','depart','roles']
 
 v1.site.register(models.UserInfo,UserInfoConfig)

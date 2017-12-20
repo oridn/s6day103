@@ -5,87 +5,6 @@ from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.http import QueryDict
 from django.db.models import Q
-class FilterOption(object):
-    def __init__(self,field_name,multi=False,condition=None,is_choice=False):
-        """
-
-        :param field_name: 字段
-        :param multi:  是否多选
-        :param condition: 显示数据的筛选条件
-        :param is_choice: 是否是choice
-        """
-        self.field_name = field_name
-        self.multi = multi
-        self.is_choice = is_choice
-
-        self.condition = condition
-
-    def get_queryset(self,_field):
-        if self.condition:
-            return _field.rel.to.objects.filter(**self.condition)
-        return _field.rel.to.objects.all()
-
-    def get_choices(self,_field):
-        return _field.choice
-
-class FilterRow(object):
-    def __init__(self,option, data, request):
-        self.data = data
-        self.option = option
-        # request.GET
-        self.request = request
-
-
-    def __iter__(self):
-        params = copy.deepcopy(self.request.GET)
-        params._mutable = True
-        current_id = params.get(self.option.field_name) # 3
-        current_id_list = params.getlist(self.option.field_name) # [1,2,3]
-
-        if self.option.field_name in params:
-            # del params[self.option.field_name]
-            origin_list = params.pop(self.option.field_name)
-            url = "{0}?{1}".format(self.request.path_info, params.urlencode())
-            yield mark_safe('<a href="{0}">全部</a>'.format(url))
-            params.setlist(self.option.field_name,origin_list)
-        else:
-            url = "{0}?{1}".format(self.request.path_info, params.urlencode())
-            yield mark_safe('<a class="active" href="{0}">全部</a>'.format(url))
-        # ( (1,男),(2,女)  )
-        for val in self.data:
-            if self.option.is_choice:
-                pk,text = str(val[0]),val[1]
-            else:
-                pk,text = str(val.pk), str(val)
-            # 当前URL？option.field_name
-            # 当前URL？gender=pk
-            # self.request.path_info # http://127.0.0.1:8005/arya/crm/customer/?gender=1&id=2
-            # self.request.GET['gender'] = 1 # &id=2gender=1
-            if not self.option.multi:
-                # 单选
-                params[self.option.field_name] = pk
-                url = "{0}?{1}".format(self.request.path_info,params.urlencode())
-                if current_id == pk:
-                    yield mark_safe("<a class='active' href='{0}'>{1}</a>".format(url,text))
-                else:
-                    yield mark_safe("<a href='{0}'>{1}</a>".format(url, text))
-            else:
-                # 多选 current_id_list = ["1","2"]
-                _params = copy.deepcopy(params)
-                id_list = _params.getlist(self.option.field_name)
-
-                if pk in current_id_list:
-                    id_list.remove(pk)
-                    _params.setlist(self.option.field_name, id_list)
-                    url = "{0}?{1}".format(self.request.path_info, _params.urlencode())
-                    yield mark_safe("<a class='active' href='{0}'>{1}</a>".format(url, text))
-                else:
-                    id_list.append(pk)
-                    # params中被重新赋值
-                    _params.setlist(self.option.field_name,id_list)
-                    # 创建URL
-                    url = "{0}?{1}".format(self.request.path_info, _params.urlencode())
-                    yield mark_safe("<a href='{0}'>{1}</a>".format(url, text))
 
 
 class ChangeList(object):
@@ -174,24 +93,20 @@ class ChangeList(object):
              FilterRow([obj,obj,obj,obj ]),
         ]
         """
+        data_list=[]
         from django.db.models import ForeignKey,ManyToManyField
-        for option in self.comb_filter:
-            _field = self.model_class._meta.get_field(option.field_name)
+        for field_name in self.comb_filter:
+            _field=self.model_class._meta.get_field(field_name)
+            print(field_name, _field, _field.choices)
             if isinstance(_field,ForeignKey):
-                # 获取当前字段depart，关联的表 Department表并获取其所有数据
-                # print(field_name,_field.rel.to.objects.all())
-                row = FilterRow(option, option.get_queryset(_field), self.request)
+            #     获取当前字段depart
+               data_list.append(_field.rel.to.objects.all())
+               # print(field_name,_field.rel.to.object.all())
             elif isinstance(_field,ManyToManyField):
-                # print(field_name, _field.rel.to.objects.all())
-                # data_list.append(  FilterRow(_field.rel.to.objects.all()) )
-                row = FilterRow(option,option.get_queryset(_field), self.request)
-
+                data_list.append(_field.rel.to.objects.all())
             else:
-                # print(field_name,_field.choices)
-                # data_list.append(  FilterRow(_field.choices) )
-                row = FilterRow(option,option.get_choices(_field),self.request)
-            # 可迭代对象
-            yield row
+                data_list.append(_field.choices)
+        return data_list
 
 
 

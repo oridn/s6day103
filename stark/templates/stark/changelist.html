@@ -24,13 +24,14 @@
     <div class="container">
     <h1>列表页面</h1>
     <div class="list-filter">
-        {% for filter_row in  cl.gen_comb_filter %}
-            <div>
-                {% for col in filter_row  %}
-                    {{ col }}
-                {% endfor %}
-            </div>
+      {% for item in  cl.gen_comb_filter  %}
+        <div>
+            {% for foo in item %}
+                <a href="">{{ foo }}</a>
         {% endfor %}
+        </div>
+      {% endfor %}
+
     </div>
 
 

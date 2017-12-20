@@ -18,7 +18,6 @@ class UserInfo(models.Model):
     gender_choices = (
         (1,'男'),
         (2,'女'),
-        (3,'少伟'),
     )
     gender = models.IntegerField(verbose_name='性别',choices=gender_choices)
 
