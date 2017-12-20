@@ -8,7 +8,7 @@ from django.db.models import Q
 class FilterOption(object):
     def __init__(self,field_name,multi=False,condition=None,is_choice=False):
         """
-        
+
         :param field_name: 字段
         :param multi:  是否多选
         :param condition: 显示数据的筛选条件
@@ -257,12 +257,12 @@ class StarkConfig(object):
     def get_show_search_form(self):
         return self.show_search_form
 
+
     search_fields = []
     def get_search_fields(self):
         result = []
         if self.search_fields:
             result.extend(self.search_fields)
-
         return result
 
     def get_search_condition(self):
@@ -355,6 +355,7 @@ class StarkConfig(object):
 
         if request.method == 'POST' and self.get_show_actions():
             func_name_str = request.POST.get('list_action')
+            print(func_name_str)
             action_func = getattr(self,func_name_str)
             ret = action_func(request)
             if ret:
@@ -369,7 +370,6 @@ class StarkConfig(object):
                 if option.field_name == key:
                     flag = True
                     break
-
             if flag:
                 comb_condition["%s__in" %key] = value_list
 

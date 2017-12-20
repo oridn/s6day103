@@ -31,8 +31,9 @@ class UserInfoConfig(v1.StarkConfig):
     def multi_del(self,request):
         pk_list = request.POST.getlist('pk')
         self.model_class.objects.filter(id__in=pk_list).delete()
-        # return HttpResponse('删除成功')
-        return redirect("http://www.baidu.com")
+        return HttpResponse('删除成功')
+
+
     multi_del.short_desc = "批量删除"
 
     def multi_init(self,request):
